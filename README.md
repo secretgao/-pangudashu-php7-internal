@@ -1,9 +1,8 @@
-转自 https://github.com/pangudashu/php7-internal
+# 非原创
+#转自 https://github.com/pangudashu/php7-internal
 
 # PHP7内核剖析
 ````
-原创内容，转载请注明出处~
-
 代码版本：php-7.0.12
 ````
 ## 反馈
