@@ -1,14 +1,19 @@
-# 非原创
-#转自 https://github.com/pangudashu/php7-internal
-
 # PHP7内核剖析
 ````
+原创内容，转载请注明出处~
+
 代码版本：php-7.0.12
 ````
 ## 反馈
 [交流&吐槽](https://github.com/pangudashu/php7-internal/issues/3)  [错误反馈](https://github.com/pangudashu/php7-internal/issues/2)
 
-![](img/my_wx2.png)
+## 纸质版
+<div align="center">
+    <img src="img/book.jpg" height="280" >
+</div>
+
+[京东](https://item.jd.com/12267210.html)
+[当当](http://product.dangdang.com/25185400.html)
 
 ## 目录：
 * 第1章 PHP基本架构
@@ -38,6 +43,7 @@
       * <a href="3/zend_executor.md#331-数据结构">3.3.1 基本结构</a>
       * <a href="3/zend_executor.md#332-执行流程">3.3.2 执行流程</a>
       * <a href="3/zend_executor.md#333-函数的执行流程">3.3.3 函数的执行流程</a>
+      * [3.3.4 全局execute_data和opline](3/zend_global_register.md)
    * 3.4 面向对象实现
       * [3.4.1 类](3/zend_class.md)
       * [3.4.2 对象](3/zend_object.md)
@@ -46,6 +52,10 @@
       * [3.4.5 魔术方法](3/zend_magic_method.md)
       * [3.4.6 类的自动加载](3/zend_autoload.md)
    * [3.5 运行时缓存](3/zend_runtime_cache.md)
+   * 3.6 Opcache
+      * 3.6.1 opcode缓存
+      * 3.6.2 opcode优化
+      * 3.6.3 JIT
 * 第4章 PHP基础语法实现
    * [4.1 类型转换](4/type.md)
    * [4.2 选择结构](4/if.md)
@@ -86,11 +96,11 @@
       * [7.7.6 数组操作](7/var.md)
    * [7.8 常量](7/constant.md)
    * 7.9 面向对象
-      7.9.1 内部类注册
-      7.9.2 定义成员属性
-      7.9.3 定义成员方法
-      7.9.4 定义常量
-      7.9.5 类的实例化
+      * 7.9.1 内部类注册
+      * 7.9.2 定义成员属性
+      * 7.9.3 定义成员方法
+      * 7.9.4 定义常量
+      * 7.9.5 类的实例化
    * 7.10 资源类型
    * 7.11 经典扩展解析
       * 7.8.1 Yaf
@@ -107,4 +117,5 @@
  
 ## 附录
    * [附录1：break/continue按标签中断语法实现](try/break.md)
+   * 附录2：defer推迟函数调用语法的实现
 

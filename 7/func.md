@@ -67,7 +67,7 @@ const zend_function_entry mytest_functions[] = {
 #define ZEND_FENTRY(zend_name, name, arg_info, flags)   { #zend_name, name, arg_info, (uint32_t) (sizeof(arg_info)/sizeof(struct _zend_internal_arg_info)-1), flags },
 #define ZEND_FN(name) zif_##name
 ```
-最后将`zend_module_entry->functions`设置为`timeout_functions`即可：
+最后将`zend_module_entry->functions`设置为`mytest_functions`即可：
 ```c
 zend_module_entry mytest_module_entry = {
     STANDARD_MODULE_HEADER,
@@ -123,7 +123,7 @@ PHP_FUNCTION(my_func_1)
 
 ![](../img/internal_func_param.png)
 
-注意：解析时除了整形、浮点型、布尔型是直接硬拷贝value外，其它解析到的变量只能是指针，arr为zend_execute_data上param_1的地址，即：`zval *arr = &param_1`，所以图中arr、param_1之间用的不是箭头指向，也就是说参数始终存储在zend_execute_data上，解析获取的是这些参数的地址。`zend_parse_parameters()`调用了`zend_parse_va_args()`进行处理，简单看下解析过程：
+注意：解析时除了整形、浮点型、布尔型是直接硬拷贝value外，其它解析到的变量只能是指针，arr为zend_execute_data上param_1的地址，即：`zval *arr = &param_1`，也就是说参数始终存储在zend_execute_data上，解析获取的是这些参数的地址。`zend_parse_parameters()`调用了`zend_parse_va_args()`进行处理，简单看下解析过程：
 ```c
 //va就是定义的要解析到的各个变量的地址
 static int zend_parse_va_args(int num_args, const char *type_spec, va_list *va, int flags)
@@ -229,7 +229,7 @@ static zend_always_inline int zend_parse_arg_long(zval *arg, zend_long *dest, ze
     return 1;
 }
 ```
-> __Note:__ "l"与"L"的区别在于，当传参不是整形且转为整形后超过了整形的大小范围时，"L"将值调整为整形的最大或最小值，而"l"将报错，比如传的参数是字符串"9223372036854775808"，转整形后超过了unsigned int64的最大值：0xFFFFFFFFFFFFFFFF，"L"将解析为0xFFFFFFFFFFFFFFFF。
+> __Note:__ "l"与"L"的区别在于，当传参不是整形且转为整形后超过了整形的大小范围时，"L"将值调整为整形的最大或最小值，而"l"将报错，比如传的参数是字符串"9223372036854775808"(0x7FFFFFFFFFFFFFFF + 1)，转整形后超过了有符号int64的最大值：0x7FFFFFFFFFFFFFFF，所以如果是"L"将解析为0x7FFFFFFFFFFFFFFF。
 
 #### 7.6.2.2 布尔型：b
 通过"b"标识符表示将传入的参数解析为布尔型，解析到的变量必须是zend_bool：
@@ -355,7 +355,7 @@ callable指函数或成员方法，如果参数是函数名称字符串、array(
 zend_fcall_info         callable; //注意，这两个结构不能是指针
 zend_fcall_info_cache   call_cache;
 
-if(zend_parse_parameters(
+if(zend_parse_parameters(ZEND_NUM_ARGS(), "f", &callable, &call_cache) == FAILURE){
     RETURN_FALSE;
 }
 ```
@@ -376,8 +376,25 @@ my_func_1(array($object, 'method'));
 
 #### 7.6.2.11 其它标识符
 除了上面介绍的这些解析符号以外，还有几个有特殊用法的标识符："|"、"+"、"*"，它们并不是用来表示某种数据类型的。
-* __|：__ 表示此后的参数为可选参数，可以不传，比如解析规则为："al|b"，则可以传2个或3个参数，如果是："alb"，则必须传3个，否则将报错；
-* __+/*：__ 用于可变参数，注意这里与PHP函数...的用法不太一样，PHP中可以把函数最后一个参数前加...，表示调用时可以传多个参数，这些参数都会插入...参数的数组中，"*/+"也表示这个参数是可变的，但内核中只能接收一个值，即使传了多个后面那些也解析不到，"*"、"+"的区别在于"*"表示可以不传可变参数，而"+"表示可变参数至少有一个。
+* __|：__ 表示此后的参数为可选参数，可以不传，比如解析规则为："al|b"，则可以传2个或3个参数，如果是："alb"，则必须传3个，否则将报错
+* __+、* ：__ 用于可变参数，`+、*`的区别在于 * 表示可以不传可变参数，而 + 表示可变参数至少有一个。可变参数将被解析到zval数组，可以通过一个整形参数，用于获取具体的数量，例如：
+```c
+PHP_FUNCTION(my_func_1)
+{
+    zval *args;
+    int argc;
+    
+    if (zend_parse_parameters(ZEND_NUM_ARGS(), "+", &args, &argc) == FAILURE) {
+        return;
+    } 
+    //...
+}
+```
+argc获取的就是可变参数的数量，args为参数数组，指向第一个参数，可以通过args[i]获取其它参数，比如这样传参：
+```php
+my_func_1(array(), 1, false, "ddd");
+```
+那么传入的4个参数就可以在解析后通过args[0]、args[1]、args[2]、args[3]获取。
 
 ### 7.6.3 引用传参
 上一节介绍了如何在内部函数中解析参数，这里还有一种情况没有讲到，那就是引用传参：
@@ -497,7 +514,7 @@ echo $a;
 
 ### 7.6.4 函数返回值
 调用内部函数时其返回值指针作为参数传入，这个参数为`zval *return_value`，如果函数有返回值直接设置此指针即可，需要特别注意的是设置返回值时需要增加其引用计数，举个例子来看：
-    ```c
+```c
 PHP_FUNCTION(my_func_1)
 {
     zval    *arr;
@@ -510,8 +527,6 @@ PHP_FUNCTION(my_func_1)
     Z_ADDREF_P(arr);
 
     //设置返回值为数组：
-    //return_value->u1.type = IS_ARRAY; 
-    //return_value->value->arr = arr->value->arr;
     ZVAL_ARR(return_value, Z_ARR_P(arr));
 } 
 ```

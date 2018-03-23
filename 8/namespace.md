@@ -259,9 +259,9 @@ typedef struct _zend_file_context {
 ```
 简单总结下use的几种不同用法：
 * __a.导入命名空间:__ 导入的名称保存在FC(imports)中，编译使用的语句时搜索此符号表进行补全
-* __b.导入类:__ 导入的名称保存在FC(imports)中，与a不同的时如果不会根据"\"切割后的最后一节检索，而是直接使用类名查找
+* __b.导入类:__ 导入的名称保存在FC(imports)中，与a不同的是不会根据"\"切割后的最后一节检索，而是直接使用类名查找
 * __c.导入函数:__ 通过`use function`导入到FC(imports_function)，补全时先查找FC(imports_function)，如果没有找到则继续按照a的情况处理
-* __d.导入常量:__ 通过`use const`导入到FC(imports_const)，不全是先查找FC(imports_const)，如果没有找到则继续按照a的情况处理
+* __d.导入常量:__ 通过`use const`导入到FC(imports_const)，补全时先查找FC(imports_const)，如果没有找到则继续按照a的情况处理
 
 ```php
 use aa\bb;                  //导入namespace
@@ -427,7 +427,7 @@ zend_string *zend_resolve_non_class_name(
     return zend_prefix_with_ns(name);
 }
 ```
-可以看到，函数与常量的的补全逻辑只是优先用原始名称去FC(imports_function)或FC(imports_const)查找，如果没有找到再去FC(imports)中匹配。如果我们这样导入了一个函数：`use aa\bb\my_func;`，编译`my_func()`会在FC(imports_function)中根据"my_func"找到"aa\bb\my_func"，从而使用完整的这个名称。
+可以看到，函数与常量的的补全逻辑只是优先用原始名称去FC(imports_function)或FC(imports_const)查找，如果没有找到再去FC(imports)中匹配。如果我们这样导入了一个函数：`use function aa\bb\my_func;`，编译`my_func()`会在FC(imports_function)中根据"my_func"找到"aa\bb\my_func"，从而使用完整的这个名称。
 
 ### 8.3.3 动态用法
 前面介绍的这些命名空间的使用都是名称为CONST类型的情况，所有的处理都是在编译环节完成的，PHP是动态语言，能否动态使用命名空间呢？举个例子：
