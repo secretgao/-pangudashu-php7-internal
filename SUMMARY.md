@@ -1,23 +1,7 @@
-# 非原创 转自 https://github.com/pangudashu/php7-internal
- 
-# PHP7内核剖析
-````
-原创内容，转载请注明出处~
+# PHP7-internal
 
-代码版本：php-7.0.12
-````
-## 反馈
-[交流&吐槽](https://github.com/pangudashu/php7-internal/issues/3)  [错误反馈](https://github.com/pangudashu/php7-internal/issues/2)
+## 目录
 
-## 纸质版
-<div align="center">
-    <img src="img/book.jpg" height="280" >
-</div>
-
-[京东](https://item.jd.com/12267210.html)
-[当当](http://product.dangdang.com/25185400.html)
-
-## 目录：
 * 第1章 PHP基本架构
    * 1.1 PHP简介
    * 1.2 PHP7的改进
@@ -117,7 +101,8 @@
       * [8.3.2 use导入](8/namespace.md)
       * [8.3.3 动态用法](8/namespace.md)
  
+----
+
 ## 附录
    * [附录1：break/continue按标签中断语法实现](try/break.md)
    * 附录2：defer推迟函数调用语法的实现
-
